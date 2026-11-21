@@ -20,7 +20,8 @@ public class EventoController {
         this.service = service;
     }
 
-    public record CriarEventoRequest(@NotBlank String nome, String descricao, @NotBlank String tipo, @NotNull OffsetDateTime dataHora, @NotNull OffsetDateTime prazoAlteracoes) {
+    public record CriarEventoRequest(@NotBlank String nome, String descricao, @NotBlank String tipo,
+                                     @NotNull OffsetDateTime dataHora, @NotNull OffsetDateTime prazoAlteracoes) {
     }
 
     public record StatusRequest(@NotNull StatusEvento status) {

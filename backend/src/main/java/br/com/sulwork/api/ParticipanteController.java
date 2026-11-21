@@ -22,7 +22,8 @@ public class ParticipanteController {
             String nome,
             String cpf,
             String restricoes
-    ) {}
+    ) {
+    }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
