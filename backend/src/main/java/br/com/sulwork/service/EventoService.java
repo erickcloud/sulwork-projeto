@@ -34,4 +34,39 @@ public class EventoService {
         evento.alterarStatus(status);
         return evento;
     }
+
+    @Transactional
+    public Evento atualizar(
+            Long id,
+            String nome,
+            String descricao,
+            String tipo,
+            OffsetDateTime dataHora,
+            OffsetDateTime prazoAlteracoes) {
+
+        Evento evento = repository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Evento não encontrado."));
+
+        if (evento.getStatus() == StatusEvento.ENCERRADO ||
+                evento.getStatus() == StatusEvento.REALIZADO ||
+                evento.getStatus() == StatusEvento.CANCELADO) {
+
+            throw new IllegalStateException(
+                    "Não é possível alterar um evento encerrado, realizado ou cancelado.");
+        }
+
+        if (!OffsetDateTime.now().isBefore(evento.getPrazoAlteracoes())) {
+            throw new IllegalStateException(
+                    "O prazo para alterações deste evento já terminou.");
+        }
+
+        if (prazoAlteracoes.isAfter(dataHora)) {
+            throw new IllegalArgumentException(
+                    "O prazo de alterações não pode ser posterior ao evento.");
+        }
+
+        evento.atualizarDados(nome, descricao, tipo, dataHora, prazoAlteracoes);
+
+        return evento;
+    }
 }

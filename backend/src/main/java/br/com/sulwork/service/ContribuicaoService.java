@@ -77,7 +77,7 @@ public class ContribuicaoService {
 
 
     @Transactional
-    public Contribuicao criar(Long participanteId, Long itemId, BigDecimal quantidade) {
+    public ContribuicaoResponseDTO criar(Long participanteId, Long itemId, BigDecimal quantidade) {
 
         validarParticipante(participanteId);
         validarItem(itemId);
@@ -109,7 +109,7 @@ public class ContribuicaoService {
                 quantidade
         );
 
-        return repository.save(contribuicao);
+        return converterParaDTO(repository.save(contribuicao));
 
     }
 

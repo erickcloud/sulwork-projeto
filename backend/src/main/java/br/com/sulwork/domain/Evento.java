@@ -72,4 +72,18 @@ public class Evento {
         if (!permitido) throw new IllegalStateException("Transição de status não permitida: " + status + " -> " + novo);
         status = novo;
     }
+
+    public void atualizarDados(
+            String nome,
+            String descricao,
+            String tipo,
+            OffsetDateTime dataHora,
+            OffsetDateTime prazoAlteracoes) {
+
+        this.nome = nome;
+        this.descricao = descricao;
+        this.tipo = tipo;
+        this.dataHora = dataHora;
+        this.prazoAlteracoes = prazoAlteracoes;
+    }
 }

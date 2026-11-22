@@ -6,7 +6,6 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-
 import java.time.OffsetDateTime;
 import java.util.List;
 
@@ -27,6 +26,15 @@ public class EventoController {
     public record StatusRequest(@NotNull StatusEvento status) {
     }
 
+    public record AtualizarEventoRequest(
+            @NotBlank String nome,
+            String descricao,
+            @NotBlank String tipo,
+            @NotNull OffsetDateTime dataHora,
+            @NotNull OffsetDateTime prazoAlteracoes
+    ) {
+    }
+
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public Evento criar(@Valid @RequestBody CriarEventoRequest r) {
@@ -41,5 +49,20 @@ public class EventoController {
     @PatchMapping("/{id}/status")
     public Evento status(@PathVariable Long id, @Valid @RequestBody StatusRequest r) {
         return service.alterarStatus(id, r.status());
+    }
+
+    @PutMapping("/{id}")
+    public Evento atualizar(
+            @PathVariable Long id,
+            @Valid @RequestBody AtualizarEventoRequest request) {
+
+        return service.atualizar(
+                id,
+                request.nome(),
+                request.descricao(),
+                request.tipo(),
+                request.dataHora(),
+                request.prazoAlteracoes()
+        );
     }
 }

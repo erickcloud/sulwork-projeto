@@ -9,6 +9,8 @@ import br.com.sulwork.domain.Participante;
 import br.com.sulwork.domain.Inscricao;
 import br.com.sulwork.exception.InscricaoDuplicadaException;
 import java.util.List;
+import br.com.sulwork.domain.StatusEvento;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class InscricaoService {
@@ -28,15 +30,14 @@ public class InscricaoService {
         this.participanteRepository = participanteRepository;
     }
 
-    private void validarExistencia(Long eventoId, Long participanteId) {
+    private Evento buscarEvento(Long eventoId) {
+        return eventoRepository.findById(eventoId)
+                .orElseThrow(() -> new IllegalArgumentException("Evento não encontrado."));
+    }
 
-        if (!eventoRepository.existsById(eventoId)) {
-            throw new IllegalArgumentException("Evento não encontrado.");
-        }
-
-        if (!participanteRepository.existsById(participanteId)) {
-            throw new IllegalArgumentException("Participante não encontrado.");
-        }
+    private Participante buscarParticipante(Long participanteId) {
+        return participanteRepository.findById(participanteId)
+                .orElseThrow(() -> new IllegalArgumentException("Participante não encontrado."));
     }
 
     private void validarInscricaoDuplicada(Long eventoId, Long participanteId) {
@@ -48,20 +49,26 @@ public class InscricaoService {
         }
     }
 
+    @Transactional
     public Inscricao inscrever(Long eventoId, Long participanteId) {
 
-        validarExistencia(eventoId, participanteId);
+        Evento evento = buscarEvento(eventoId);
+        Participante participante = buscarParticipante(participanteId);
 
         validarInscricaoDuplicada(eventoId, participanteId);
 
-        Evento evento = eventoRepository.findById(eventoId).orElseThrow();
-        Participante participante = participanteRepository.findById(participanteId).orElseThrow();
+        if (evento.getStatus() != StatusEvento.ABERTO) {
+            throw new IllegalStateException(
+                    "Não é possível realizar inscrição em um evento que não esteja aberto."
+            );
+        }
 
         Inscricao inscricao = new Inscricao(evento, participante);
 
         return repository.save(inscricao);
     }
 
+    @Transactional(readOnly = true)
     public List<Inscricao> listar() {
         return repository.findAll();
     }
