@@ -1,3 +1,4 @@
+
 /** @vitest-environment jsdom */
 
 import '@testing-library/jest-dom/vitest';
@@ -10,6 +11,31 @@ afterEach(() => {
     cleanup();
     vi.unstubAllGlobals();
 });
+
+type ModoCadastro = 'sucesso' | 'rejeicao' | 'conexao';
+
+function configurarFetch(modo: ModoCadastro = 'sucesso') {
+    const fetchMock = vi.fn().mockImplementation(
+        async (url: string, options?: RequestInit) => {
+            const cadastroEvento =
+                url === 'http://localhost:8080/api/eventos' &&
+                options?.method === 'POST';
+
+            if (cadastroEvento && modo === 'conexao') {
+                throw new TypeError('Failed to fetch');
+            }
+
+            return {
+                ok: !(cadastroEvento && modo === 'rejeicao'),
+                json: async () => [],
+            };
+        }
+    );
+
+    vi.stubGlobal('fetch', fetchMock);
+
+    return fetchMock;
+}
 
 describe('Sulwork frontend', () => {
     it('renderiza a tela de eventos corretamente', async () => {
@@ -69,20 +95,7 @@ describe('Sulwork frontend', () => {
     });
 
     it('envia os dados corretos ao cadastrar um evento', async () => {
-        const fetchMock = vi.fn()
-            .mockResolvedValueOnce({
-                ok: true,
-                json: async () => [],
-            })
-            .mockResolvedValueOnce({
-                ok: true,
-            })
-            .mockResolvedValueOnce({
-                ok: true,
-                json: async () => [],
-            });
-
-        vi.stubGlobal('fetch', fetchMock);
+        const fetchMock = configurarFetch();
 
         const user = userEvent.setup();
 
@@ -109,9 +122,15 @@ describe('Sulwork frontend', () => {
 
         expect(campoNome).toHaveValue('');
 
-        expect(fetchMock).toHaveBeenNthCalledWith(
-            2,
-            'http://localhost:8080/api/eventos',
+        const chamadaCadastro = fetchMock.mock.calls.find(
+            ([url, options]) =>
+                url === 'http://localhost:8080/api/eventos' &&
+                options?.method === 'POST'
+        );
+
+        expect(chamadaCadastro).toBeDefined();
+
+        expect(chamadaCadastro?.[1]).toEqual(
             expect.objectContaining({
                 method: 'POST',
                 headers: {
@@ -125,16 +144,7 @@ describe('Sulwork frontend', () => {
     });
 
     it('exibe mensagem quando a API rejeita o cadastro', async () => {
-        const fetchMock = vi.fn()
-            .mockResolvedValueOnce({
-                ok: true,
-                json: async () => [],
-            })
-            .mockResolvedValueOnce({
-                ok: false,
-            });
-
-        vi.stubGlobal('fetch', fetchMock);
+        configurarFetch('rejeicao');
 
         const user = userEvent.setup();
 
@@ -156,28 +166,20 @@ describe('Sulwork frontend', () => {
         ).toBeInTheDocument();
     });
 
-
     it('exibe mensagem quando não consegue conectar à API ao cadastrar', async () => {
-        const fetchMock = vi.fn()
-            .mockResolvedValueOnce({
-                ok: true,
-                json: async () => [],
-            })
-            .mockRejectedValueOnce(new TypeError('Failed to fetch'));
-
-        vi.stubGlobal('fetch', fetchMock);
+        configurarFetch('conexao');
 
         const user = userEvent.setup();
 
-        render(<App />);
+        render(<App/>);
 
         await user.type(
-            screen.getByRole('textbox', { name: 'Nome do evento' }),
+            screen.getByRole('textbox', {name: 'Nome do evento'}),
             'Evento sem conexão'
         );
 
         await user.click(
-            screen.getByRole('button', { name: 'Criar evento' })
+            screen.getByRole('button', {name: 'Criar evento'})
         );
 
         expect(
@@ -186,6 +188,4 @@ describe('Sulwork frontend', () => {
             )
         ).toBeInTheDocument();
     });
-
-
 });
