@@ -278,4 +278,257 @@ public class EventoServiceTest {
         verify(repository).findById(1L);
     }
 
+
+    @Test
+    void deveLancarExcecaoQuandoEventoEstiverCanceladoAoAtualizar() {
+
+        OffsetDateTime agora = OffsetDateTime.now();
+
+        Evento evento = new Evento(
+                "Churrasco",
+                "Churrasco antigo",
+                "CHURRASCO",
+                agora.plusDays(10),
+                agora.plusDays(5)
+        );
+
+        evento.alterarStatus(StatusEvento.CANCELADO);
+
+        when(repository.findById(1L)).thenReturn(Optional.of(evento));
+
+        assertThrows(IllegalStateException.class, () ->
+                service.atualizar(
+                        1L,
+                        "Churrasco atualizado",
+                        "Nova descrição",
+                        "ANIVERSARIO",
+                        agora.plusDays(15),
+                        agora.plusDays(8)
+                )
+        );
+
+        verify(repository).findById(1L);
+    }
+
+    @Test
+    void deveLancarExcecaoQuandoEventoEstiverRealizadoAoAtualizar() {
+
+        OffsetDateTime agora = OffsetDateTime.now();
+
+        Evento evento = new Evento(
+                "Churrasco",
+                "Churrasco antigo",
+                "CHURRASCO",
+                agora.plusDays(10),
+                agora.plusDays(5)
+        );
+
+        evento.alterarStatus(StatusEvento.ABERTO);
+        evento.alterarStatus(StatusEvento.ENCERRADO);
+        evento.alterarStatus(StatusEvento.REALIZADO);
+
+        when(repository.findById(1L)).thenReturn(Optional.of(evento));
+
+        assertThrows(IllegalStateException.class, () ->
+                service.atualizar(
+                        1L,
+                        "Churrasco atualizado",
+                        "Nova descrição",
+                        "ANIVERSARIO",
+                        agora.plusDays(15),
+                        agora.plusDays(8)
+                )
+        );
+
+        verify(repository).findById(1L);
+    }
+
+    @Test
+    void deveAtualizarEventoQuandoEstiverAberto() {
+
+        OffsetDateTime agora = OffsetDateTime.now();
+
+        Evento evento = new Evento(
+                "Churrasco",
+                "Churrasco antigo",
+                "CHURRASCO",
+                agora.plusDays(10),
+                agora.plusDays(5)
+        );
+
+        evento.alterarStatus(StatusEvento.ABERTO);
+
+        when(repository.findById(1L)).thenReturn(Optional.of(evento));
+
+        Evento resultado = service.atualizar(
+                1L,
+                "Churrasco atualizado",
+                "Nova descrição",
+                "ANIVERSARIO",
+                agora.plusDays(15),
+                agora.plusDays(8)
+        );
+
+        assertEquals("Churrasco atualizado", resultado.getNome());
+        assertEquals("Nova descrição", resultado.getDescricao());
+        assertEquals("ANIVERSARIO", resultado.getTipo());
+        assertEquals(StatusEvento.ABERTO, resultado.getStatus());
+
+        verify(repository).findById(1L);
+    }
+
+    @Test
+    void deveAlterarStatusDeRascunhoParaAberto() {
+        Evento evento = new Evento(
+                "Churrasco",
+                "Evento de confraternização",
+                "CHURRASCO",
+                OffsetDateTime.now().plusDays(10),
+                OffsetDateTime.now().plusDays(5)
+        );
+
+        when(repository.findById(1L)).thenReturn(Optional.of(evento));
+
+        Evento resultado = service.alterarStatus(1L, StatusEvento.ABERTO);
+
+        assertEquals(StatusEvento.ABERTO, resultado.getStatus());
+
+        verify(repository).findById(1L);
+    }
+
+    @Test
+    void deveAlterarStatusDeAbertoParaEncerrado() {
+        OffsetDateTime agora = OffsetDateTime.now();
+
+        Evento evento = new Evento(
+                "Churrasco",
+                "Evento de confraternização",
+                "CHURRASCO",
+                agora.plusDays(10),
+                agora.plusDays(5)
+        );
+
+        evento.alterarStatus(StatusEvento.ABERTO);
+
+        when(repository.findById(1L)).thenReturn(Optional.of(evento));
+
+        Evento resultado = service.alterarStatus(1L, StatusEvento.ENCERRADO);
+
+        assertEquals(StatusEvento.ENCERRADO, resultado.getStatus());
+
+        verify(repository).findById(1L);
+    }
+
+    @Test
+    void deveAlterarStatusDeEncerradoParaRealizado() {
+        OffsetDateTime agora = OffsetDateTime.now();
+
+        Evento evento = new Evento(
+                "Churrasco",
+                "Evento de confraternização",
+                "CHURRASCO",
+                agora.plusDays(10),
+                agora.plusDays(5)
+        );
+
+        evento.alterarStatus(StatusEvento.ABERTO);
+        evento.alterarStatus(StatusEvento.ENCERRADO);
+
+        when(repository.findById(1L)).thenReturn(Optional.of(evento));
+
+        Evento resultado = service.alterarStatus(1L, StatusEvento.REALIZADO);
+
+        assertEquals(StatusEvento.REALIZADO, resultado.getStatus());
+
+        verify(repository).findById(1L);
+    }
+
+    @Test
+    void deveLancarExcecaoQuandoTentarReabrirEventoRealizado() {
+        OffsetDateTime agora = OffsetDateTime.now();
+
+        Evento evento = new Evento(
+                "Churrasco",
+                "Evento de confraternização",
+                "CHURRASCO",
+                agora.plusDays(10),
+                agora.plusDays(5)
+        );
+
+        evento.alterarStatus(StatusEvento.ABERTO);
+        evento.alterarStatus(StatusEvento.ENCERRADO);
+        evento.alterarStatus(StatusEvento.REALIZADO);
+
+        when(repository.findById(1L)).thenReturn(Optional.of(evento));
+
+        assertThrows(IllegalStateException.class, () ->
+                service.alterarStatus(1L, StatusEvento.ABERTO)
+        );
+
+        verify(repository).findById(1L);
+    }
+
+    @Test
+    void deveAlterarStatusDeRascunhoParaCancelado() {
+        Evento evento = new Evento(
+                "Churrasco",
+                "Evento de confraternização",
+                "CHURRASCO",
+                OffsetDateTime.now().plusDays(10),
+                OffsetDateTime.now().plusDays(5)
+        );
+
+        when(repository.findById(1L)).thenReturn(Optional.of(evento));
+
+        Evento resultado = service.alterarStatus(1L, StatusEvento.CANCELADO);
+
+        assertEquals(StatusEvento.CANCELADO, resultado.getStatus());
+
+        verify(repository).findById(1L);
+    }
+
+    @Test
+    void deveAlterarStatusDeAbertoParaCancelado() {
+        Evento evento = new Evento(
+                "Churrasco",
+                "Evento de confraternização",
+                "CHURRASCO",
+                OffsetDateTime.now().plusDays(10),
+                OffsetDateTime.now().plusDays(5)
+        );
+
+        evento.alterarStatus(StatusEvento.ABERTO);
+
+        when(repository.findById(1L)).thenReturn(Optional.of(evento));
+
+        Evento resultado = service.alterarStatus(1L, StatusEvento.CANCELADO);
+
+        assertEquals(StatusEvento.CANCELADO, resultado.getStatus());
+
+        verify(repository).findById(1L);
+    }
+
+    @Test
+    void deveAlterarStatusDeEncerradoParaCancelado() {
+        Evento evento = new Evento(
+                "Churrasco",
+                "Evento de confraternização",
+                "CHURRASCO",
+                OffsetDateTime.now().plusDays(10),
+                OffsetDateTime.now().plusDays(5)
+        );
+
+        evento.alterarStatus(StatusEvento.ABERTO);
+        evento.alterarStatus(StatusEvento.ENCERRADO);
+
+        when(repository.findById(1L)).thenReturn(Optional.of(evento));
+
+        Evento resultado = service.alterarStatus(1L, StatusEvento.CANCELADO);
+
+        assertEquals(StatusEvento.CANCELADO, resultado.getStatus());
+
+        verify(repository).findById(1L);
+    }
+
+
 }
