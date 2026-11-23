@@ -30,7 +30,7 @@ docker compose up --build
 A aplicação estará disponível em:
 
 - Frontend: http://localhost:5173
-- API REST: http://localhost:8080/api
+- API REST: http://localhost:8080/api/eventos
 - Swagger UI: http://localhost:8080/swagger-ui/index.html
 - OpenAPI JSON: http://localhost:8080/v3/api-docs
 
