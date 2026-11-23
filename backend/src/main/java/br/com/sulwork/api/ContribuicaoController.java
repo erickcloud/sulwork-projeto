@@ -1,10 +1,13 @@
+
 package br.com.sulwork.api;
 
 import br.com.sulwork.service.ContribuicaoService;
-import org.springframework.web.bind.annotation.*;
-import java.math.BigDecimal;
 import br.com.sulwork.dto.ContribuicaoResponseDTO;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.*;
+
+import java.math.BigDecimal;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/contribuicoes")
@@ -35,4 +38,8 @@ public class ContribuicaoController {
         );
     }
 
+    @GetMapping
+    public List<ContribuicaoResponseDTO> listar() {
+        return service.listar();
+    }
 }

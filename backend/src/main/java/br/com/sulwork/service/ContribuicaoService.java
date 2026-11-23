@@ -11,6 +11,8 @@ import br.com.sulwork.domain.Participante;
 import br.com.sulwork.domain.Evento;
 import br.com.sulwork.domain.StatusEvento;
 import java.time.OffsetDateTime;
+import java.util.List;
+
 import org.springframework.transaction.annotation.Transactional;
 import br.com.sulwork.dto.ContribuicaoResponseDTO;
 
@@ -122,6 +124,14 @@ public class ContribuicaoService {
                 contribuicao.getItem().getNome(),
                 contribuicao.getQuantidade()
         );
+    }
+
+    @Transactional(readOnly = true)
+    public List<ContribuicaoResponseDTO> listar() {
+        return repository.findAll()
+                .stream()
+                .map(this::converterParaDTO)
+                .toList();
     }
 
 

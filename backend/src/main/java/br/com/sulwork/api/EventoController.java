@@ -8,15 +8,22 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import java.time.OffsetDateTime;
 import java.util.List;
+import br.com.sulwork.dto.CoberturaEventoResponseDTO;
+import br.com.sulwork.service.CoberturaService;
 
 @RestController
 @RequestMapping("/api/eventos")
 @CrossOrigin(origins = "http://localhost:5173")
 public class EventoController {
-    private final EventoService service;
 
-    public EventoController(EventoService service) {
+    private final EventoService service;
+    private final CoberturaService coberturaService;
+
+    public EventoController(
+            EventoService service,
+            CoberturaService coberturaService) {
         this.service = service;
+        this.coberturaService = coberturaService;
     }
 
     public record CriarEventoRequest(@NotBlank String nome, String descricao, @NotBlank String tipo,
@@ -65,4 +72,10 @@ public class EventoController {
                 request.prazoAlteracoes()
         );
     }
+
+    @GetMapping("/{id}/cobertura")
+    public CoberturaEventoResponseDTO cobertura(@PathVariable Long id) {
+        return coberturaService.calcular(id);
+    }
+
 }
