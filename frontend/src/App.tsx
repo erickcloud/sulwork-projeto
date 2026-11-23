@@ -24,6 +24,19 @@ type Cobertura = {
 
 const API = 'http://localhost:8080/api';
 
+function proximosStatus(status: string): string[] {
+    switch (status) {
+        case 'RASCUNHO':
+            return ['ABERTO', 'CANCELADO'];
+        case 'ABERTO':
+            return ['ENCERRADO', 'CANCELADO'];
+        case 'ENCERRADO':
+            return ['REALIZADO', 'CANCELADO'];
+        default:
+            return [];
+    }
+}
+
 export default function App() {
     const [eventos, setEventos] = useState<Evento[]>([]);
     const [coberturas, setCoberturas] = useState<Record<number, Cobertura>>({});
@@ -34,7 +47,11 @@ export default function App() {
     async function carregar() {
         try {
             const r = await fetch(`${API}/eventos`);
-            if (r.ok) setEventos(await r.json());
+            if (r.ok) {
+                setEventos(await r.json());
+            } else {
+                setMensagem('Não foi possível carregar os eventos.');
+            }
         } catch {
             setMensagem('Não foi possível conectar à API. Verifique se o Docker Compose está ativo.');
         }
@@ -101,12 +118,56 @@ export default function App() {
             if (r.ok) {
                 setNome('');
                 setMensagem('Evento criado com sucesso.');
-                carregar();
+                await carregar();
             } else {
                 setMensagem('Não foi possível criar o evento. Confira a API.');
             }
         } catch {
             setMensagem('Não foi possível conectar à API. Verifique se o Docker Compose está ativo.');
+        }
+    }
+
+    async function alterarStatus(ev: Evento, novoStatus: string) {
+        try {
+            const r = await fetch(`${API}/eventos/${ev.id}/status`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status: novoStatus })
+            });
+
+            if (r.ok) {
+                setMensagem(`Status do evento "${ev.nome}" alterado para ${novoStatus}.`);
+                await carregar();
+            } else {
+                const erro = await r.json().catch(() => null);
+                setMensagem(erro?.erro || erro?.message || 'Não foi possível alterar o status.');
+            }
+        } catch {
+            setMensagem('Não foi possível conectar à API.');
+        }
+    }
+
+    async function excluirEvento(ev: Evento) {
+        const confirmado = window.confirm(
+            `Tem certeza que deseja excluir o evento "${ev.nome}"?\n\nAs categorias, itens, contribuições e inscrições desse evento também serão excluídos. Os participantes serão preservados.`
+        );
+
+        if (!confirmado) return;
+
+        try {
+            const r = await fetch(`${API}/eventos/${ev.id}`, {
+                method: 'DELETE'
+            });
+
+            if (r.ok) {
+                setMensagem(`Evento "${ev.nome}" excluído com sucesso.`);
+                await carregar();
+            } else {
+                const erro = await r.json().catch(() => null);
+                setMensagem(erro?.erro || erro?.message || 'Não foi possível excluir o evento.');
+            }
+        } catch {
+            setMensagem('Não foi possível conectar à API.');
         }
     }
 
@@ -189,7 +250,39 @@ export default function App() {
                                     </small>
                                 )}
                             </div>
+
                             <span className="pill">{ev.status}</span>
+
+                            <div className="event-actions">
+                                {proximosStatus(ev.status).length > 0 && (
+                                    <select
+                                        aria-label={`Alterar status do evento ${ev.nome}`}
+                                        value=""
+                                        onChange={e => {
+                                            if (e.target.value) {
+                                                alterarStatus(ev, e.target.value);
+                                            }
+                                        }}
+                                    >
+                                        <option value="" disabled>
+                                            Alterar status
+                                        </option>
+                                        {proximosStatus(ev.status).map(status => (
+                                            <option key={status} value={status}>
+                                                {status}
+                                            </option>
+                                        ))}
+                                    </select>
+                                )}
+
+                                <button
+                                    type="button"
+                                    className="danger"
+                                    onClick={() => excluirEvento(ev)}
+                                >
+                                    Excluir
+                                </button>
+                            </div>
                         </div>
                     ))
                 )}

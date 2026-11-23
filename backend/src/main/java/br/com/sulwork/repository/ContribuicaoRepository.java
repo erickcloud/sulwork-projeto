@@ -15,4 +15,10 @@ public interface ContribuicaoRepository extends JpaRepository<Contribuicao, Long
             nativeQuery = true
     )
     BigDecimal somarQuantidadePorItem(@Param("itemId") Long itemId);
+
+    boolean existsByParticipante_Id(Long participanteId);
+
+    void deleteByParticipante_Id(Long participanteId);
+
+    void deleteByItem_Categoria_Evento_Id(Long eventoId);
 }

@@ -40,4 +40,10 @@ public class ParticipanteController {
         return service.listar();
     }
 
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void excluir(@PathVariable Long id) {
+        service.excluir(id);
+    }
+
 }

@@ -68,6 +68,33 @@ export default function Participantes() {
         }
     }
 
+    async function excluir(id: number) {
+        const confirmar = window.confirm(
+            'Tem certeza que deseja excluir este participante?'
+        );
+
+        if (!confirmar) {
+            return;
+        }
+
+        try {
+            const resposta = await fetch(`${API}/participantes/${id}`, {
+                method: 'DELETE'
+            });
+
+            if (!resposta.ok) {
+                const erro = await resposta.text();
+                setMensagem(erro || 'Não foi possível excluir o participante.');
+                return;
+            }
+
+            setMensagem('Participante excluído com sucesso.');
+            await carregar();
+        } catch {
+            setMensagem('Erro de conexão com a API.');
+        }
+    }
+
     return (
         <section className="panel">
             <div className="section-title">
@@ -90,8 +117,9 @@ export default function Participantes() {
                     aria-label="CPF"
                     placeholder="CPF (11 dígitos)"
                     value={cpf}
-                    onChange={e => setCpf(e.target.value)}
-                    maxLength={14}
+                    onChange={e => setCpf(e.target.value.replace(/\D/g, '').slice(0, 11))}
+                    maxLength={11}
+                    inputMode="numeric"
                     required
                 />
 
@@ -128,6 +156,14 @@ export default function Participantes() {
                             Restrições: {participante.restricoes || 'Nenhuma informada'}
                         </small>
                     </div>
+
+                    <button
+                        type="button"
+                        className="secondary"
+                        onClick={() => excluir(participante.id)}
+                    >
+                        Excluir
+                    </button>
                 </div>
             ))}
         </section>

@@ -3,7 +3,10 @@ package br.com.sulwork.service;
 
 import br.com.sulwork.domain.Participante;
 import br.com.sulwork.repository.ParticipanteRepository;
+import br.com.sulwork.repository.InscricaoRepository;
+import br.com.sulwork.repository.ContribuicaoRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -11,9 +14,17 @@ import java.util.List;
 public class ParticipanteService {
 
     private final ParticipanteRepository repository;
+    private final InscricaoRepository inscricaoRepository;
+    private final ContribuicaoRepository contribuicaoRepository;
 
-    public ParticipanteService(ParticipanteRepository repository) {
+    public ParticipanteService(
+            ParticipanteRepository repository,
+            InscricaoRepository inscricaoRepository,
+            ContribuicaoRepository contribuicaoRepository
+    ) {
         this.repository = repository;
+        this.inscricaoRepository = inscricaoRepository;
+        this.contribuicaoRepository = contribuicaoRepository;
     }
 
     private boolean cpfValido(String cpf) {
@@ -103,5 +114,20 @@ public class ParticipanteService {
 
     public List<Participante> listar() {
         return repository.findAll();
+    }
+
+    @Transactional
+    public void excluir(Long id) {
+
+        Participante participante = repository.findById(id)
+                .orElseThrow(() ->
+                        new IllegalArgumentException("Participante não encontrado.")
+                );
+
+        contribuicaoRepository.deleteByParticipante_Id(id);
+
+        inscricaoRepository.deleteByParticipante_Id(id);
+
+        repository.delete(participante);
     }
 }

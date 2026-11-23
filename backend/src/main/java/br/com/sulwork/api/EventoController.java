@@ -78,4 +78,10 @@ public class EventoController {
         return coberturaService.calcular(id);
     }
 
+@DeleteMapping("/{id}")
+@ResponseStatus(HttpStatus.NO_CONTENT)
+public void excluir(@PathVariable Long id) {
+    service.excluir(id);
+}
+
 }

@@ -1,10 +1,12 @@
+
 package br.com.sulwork.repository;
 
 import br.com.sulwork.domain.Item;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.EntityGraph;
-import java.util.List;
 import org.springframework.data.jpa.repository.Query;
+
+import java.util.List;
 import java.util.Optional;
 
 public interface ItemRepository extends JpaRepository<Item, Long> {
@@ -20,4 +22,5 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
             """)
     Optional<Item> buscarPorIdComCategoriaEEvento(Long id);
 
+    void deleteByCategoria_Evento_Id(Long eventoId);
 }
