@@ -33,7 +33,6 @@ A aplicação estará disponível em:
 - API REST: http://localhost:8080/api
 - Swagger UI: http://localhost:8080/swagger-ui/index.html
 - OpenAPI JSON: http://localhost:8080/v3/api-docs
-- PostgreSQL: localhost:5432
 
 As credenciais e configurações do banco devem ser consultadas no arquivo `docker-compose.yml`.
 
